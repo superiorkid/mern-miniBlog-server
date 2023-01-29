@@ -9,7 +9,6 @@ const prisma = new PrismaClient()
 export const FetchAllPost = async (req: Request, res: Response) => {
     const {id} = req.body
     try {
-
         await prisma.post
             .findMany({
                 where: {

@@ -2,7 +2,6 @@ import {Router} from "express";
 import {FetchAllPost, CreateNewPost, DeletePost, UpdatePost, GetPostById} from "./post.controller";
 import {body} from "express-validator";
 
-
 const router = Router()
 
 router.get('/', FetchAllPost)

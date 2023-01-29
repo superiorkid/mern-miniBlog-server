@@ -6,7 +6,9 @@ import PostRoute from "./src/posts/post.route";
 import UserRoute from "./src/users/user.route";
 
 const app: Express = express()
+
 app.use(Cors())
+
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 

@@ -1,4 +1,4 @@
-export const createSlug = (text: string) => {
+export const createSlug = (text: string): string => {
     return text
         .toLowerCase()
         .replace(/ /g, '-')
