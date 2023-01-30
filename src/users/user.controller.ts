@@ -1,9 +1,20 @@
 import {PrismaClient} from "@prisma/client";
 import {Request, Response} from "express";
+import {validationResult} from "express-validator";
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
 export const SignUp = async (req: Request, res: Response) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            code: 400,
+            status: "BAD_REQUEST",
+            message: errors.array()
+        })
+    }
+
     const {username, email, password} = req.body
 
     try {
@@ -22,11 +33,14 @@ export const SignUp = async (req: Request, res: Response) => {
             })
         }
 
+        const saltRounds: number = 10
+        const hashedPassword = await bcrypt.hash(password, saltRounds)
+
         await prisma.user.create({
             data: {
                 username,
                 email,
-                password
+                password: hashedPassword
             }
         }).then((data) => {
             res.status(201).json({
