@@ -1,19 +1,18 @@
 import {Request, Response} from "express";
-import {PrismaClient} from "@prisma/client";
 import {validationResult} from "express-validator";
 
 import {createSlug} from "./post.helper";
-
-const prisma = new PrismaClient()
+import prisma from "../../prisma/prisma";
 
 export const FetchAllPost = async (req: Request, res: Response) => {
-    const {id} = req.body
+    const {userId} = req.body
     try {
+
         await prisma.post
             .findMany({
                 where: {
                     author: {
-                        id
+                        id: userId,
                     }
                 }
             })
@@ -52,7 +51,7 @@ export const CreateNewPost = async (req:Request, res:Response) => {
         })
     }
 
-    const { id, title, body } = req.body
+    const { userId, title, body } = req.body
     const slug = createSlug(title)
 
     try {
@@ -79,7 +78,7 @@ export const CreateNewPost = async (req:Request, res:Response) => {
                 title: title,
                 author: {
                     connect: {
-                        id
+                        id: userId
                     }
                 }
             }
@@ -162,13 +161,13 @@ export const UpdatePost = async (req: Request, res: Response) => {
     }
 }
 
-export const GetPostById = async (req: Request, res: Response) => {
-    const {id} = req.params
+export const GetPostBySlug = async (req: Request, res: Response) => {
+    const {slug} = req.params
     try {
 
-        await prisma.post.findFirst({
+        await prisma.post.findUniqueOrThrow({
             where: {
-                id
+                slug
             }
         }).then((data) => {
             res.status(200).json({
