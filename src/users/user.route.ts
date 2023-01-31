@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {SignUp} from "./user.controller";
+import {SignUp, Login} from "./user.controller";
 import {body} from "express-validator";
 
 const router = Router()
@@ -16,5 +16,11 @@ router.post(
         return true
     }),
     SignUp)
+
+router.post(
+    "/login",
+    body("email").not().isEmpty().isEmail(),
+    body("password").not().isEmpty(),
+    Login)
 
 export default router
