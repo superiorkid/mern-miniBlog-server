@@ -1,13 +1,13 @@
-import {PrismaClient} from "@prisma/client";
 import {Request, Response} from "express";
 import {validationResult} from "express-validator";
 import bcrypt from 'bcrypt'
 import jwt, {Secret} from 'jsonwebtoken'
 import dotenv from "dotenv";
 
+import prisma from "../../prisma/prisma";
+
 dotenv.config()
 
-const prisma = new PrismaClient()
 
 export const SignUp = async (req: Request, res: Response) => {
     const errors = validationResult(req)
