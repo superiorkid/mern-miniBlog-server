@@ -4,8 +4,11 @@ import bodyParser from "body-parser"
 
 import PostRoute from "./src/posts/post.route";
 import UserRoute from "./src/users/user.route";
+import connectDB from "./src/config/database";
 
 const app: Express = express()
+
+connectDB()
 
 app.use(Cors())
 
