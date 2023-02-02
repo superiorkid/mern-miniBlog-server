@@ -51,7 +51,9 @@ export const CreateNewPost = async (req:Request, res:Response) => {
         })
     }
 
-    const { userId, title, body } = req.body
+    const { title, body } = req.body
+    const thumbnail = req.file?.filename
+    const userId = "63d86de40b0f29d6e12a9d5d"
     const slug = createSlug(title)
 
     try {
@@ -76,6 +78,7 @@ export const CreateNewPost = async (req:Request, res:Response) => {
                 slug: slug,
                 body: body,
                 title: title,
+                thumbnail: thumbnail,
                 author: {
                     connect: {
                         id: userId
