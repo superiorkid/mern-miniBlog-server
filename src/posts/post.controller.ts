@@ -3,6 +3,7 @@ import {validationResult} from "express-validator";
 
 import {createSlug} from "./post.helper";
 import prisma from "../../prisma/prisma";
+import fs from "fs";
 
 export const FetchAllPost = async (req: Request, res: Response) => {
     const {userId} = req.body
@@ -12,7 +13,14 @@ export const FetchAllPost = async (req: Request, res: Response) => {
             .findMany({
                 where: {
                     author: {
-                        id: userId,
+                        id: "63d86de40b0f29d6e12a9d5d",
+                    }
+                },
+                include: {
+                    author: {
+                        select: {
+                            username: true
+                        }
                     }
                 }
             })
@@ -194,4 +202,10 @@ export const GetPostBySlug = async (req: Request, res: Response) => {
             message: "something went wrong"
         })
     }
+}
+
+export const GetCoverImage = async (req: Request, res: Response) => {
+    const {imageName} = req.params
+    const readStream = fs.createReadStream(`public/post/thumbnail/${imageName}`)
+    readStream.pipe(res)
 }
