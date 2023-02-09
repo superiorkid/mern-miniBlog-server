@@ -9,3 +9,7 @@ interface IToken {
     exp: number,
     iat: number
 }
+
+interface ITag {
+    name: string
+}

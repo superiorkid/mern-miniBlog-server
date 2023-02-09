@@ -1,32 +1,45 @@
-import {Request, Router, Response} from "express";
-import {FetchAllPost, CreateNewPost, DeletePost, UpdatePost, GetPostBySlug, GetCoverImage} from "./post.controller";
-import {body} from "express-validator";
+import { Request, Router, Response } from "express";
+import {
+  FetchAllPost,
+  CreateNewPost,
+  DeletePost,
+  UpdatePost,
+  GetPostBySlug,
+  GetCoverImage,
+} from "./post.controller";
+import { body } from "express-validator";
+import multer from "multer";
 
 import authMiddleware from "../middlewares/auth.middleware";
-import articleUpload from '../config/articleUpload'
 
-const router = Router()
+const router = Router();
+const upload = multer({
+  limits: {fieldSize: 25*1024*1024}
+})
+
 
 router.post(
-    '/',
-    articleUpload,
-    body("title").not().isEmpty(),
-    body("body").not().isEmpty(),
-    CreateNewPost)
+  "/",
+  upload.single('thumbnail'),
+  body("title").not().isEmpty(),
+  body("body").not().isEmpty(),
+  body("tags").not().isEmpty(),
+  authMiddleware,
+  CreateNewPost
+);
 
-router.get('/', FetchAllPost)
-router.get('/:slug', authMiddleware, GetPostBySlug)
-router.delete('/:id', authMiddleware, DeletePost)
+router.get("/", FetchAllPost);
+router.get("/:slug", GetPostBySlug);
+router.delete("/:id", authMiddleware, DeletePost);
 router.put(
-    "/:id",
-    authMiddleware,
-    body("title").not().isEmpty(),
-    body("body").not().isEmpty(),
-    UpdatePost)
+  "/:id",
+  upload.single("thumbnail"),
+  body("title").not().isEmpty(),
+  body("body").not().isEmpty(),
+  authMiddleware,
+  UpdatePost
+);
 
-router.get('/cover/:imageName', GetCoverImage)
+router.get("/cover/:imageName", GetCoverImage);
 
-
-
-
-export default router
+export default router;

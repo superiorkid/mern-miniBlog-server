@@ -8,11 +8,13 @@ import connectDB from "./src/config/database";
 
 const app: Express = express()
 
-connectDB()
 
 app.use(Cors())
+app.use(express.static('./public'))
 
-app.use(bodyParser.urlencoded({extended: true}))
+connectDB()
+
+app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 app.use('/post', PostRoute)
