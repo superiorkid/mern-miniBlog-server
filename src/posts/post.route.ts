@@ -41,5 +41,4 @@ router.put(
 );
 
 router.get("/cover/:imageName", GetCoverImage);
-
-export default router;
+export default router
