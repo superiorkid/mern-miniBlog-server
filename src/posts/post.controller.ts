@@ -152,6 +152,13 @@ export const DeletePost = async (req: Request, res: Response) => {
         },
       })
       .then((data) => {
+        fs.unlink(
+          path.join(ROOT_DIRECTORY, `/public/post/thumbnail/${data.thumbnail}`),
+          (err) => {
+            if (err) throw new Error("Error while deleted cover image");
+          }
+        );
+
         res.status(200).json({
           code: 200,
           status: "OK",
@@ -176,7 +183,8 @@ export const DeletePost = async (req: Request, res: Response) => {
 
 export const UpdatePost = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, body, tags, thumbnail, userId } = req.body;
+  const { title, body, tags, userId } = req.body;
+  let { thumbnail } = req.body;
 
   const cover = thumbnail.replace(/^data:([A-Za-z-+/]+);base64,/, "");
 
