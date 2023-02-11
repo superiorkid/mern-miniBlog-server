@@ -6,6 +6,7 @@ import {
   UpdatePost,
   GetPostBySlug,
   GetCoverImage,
+  GetPostTags,
 } from "./post.controller";
 import { body } from "express-validator";
 import multer from "multer";
@@ -14,13 +15,12 @@ import authMiddleware from "../middlewares/auth.middleware";
 
 const router = Router();
 const upload = multer({
-  limits: {fieldSize: 25*1024*1024}
-})
-
+  limits: { fieldSize: 25 * 1024 * 1024 },
+});
 
 router.post(
   "/",
-  upload.single('thumbnail'),
+  upload.single("thumbnail"),
   body("title").not().isEmpty(),
   body("body").not().isEmpty(),
   body("tags").not().isEmpty(),
@@ -29,6 +29,7 @@ router.post(
 );
 
 router.get("/", FetchAllPost);
+router.get("/tag", GetPostTags);
 router.get("/:slug", GetPostBySlug);
 router.delete("/:id", authMiddleware, DeletePost);
 router.put(
@@ -41,4 +42,5 @@ router.put(
 );
 
 router.get("/cover/:imageName", GetCoverImage);
-export default router
+
+export default router;

@@ -24,6 +24,9 @@ export const FetchAllPost = async (req: Request, res: Response) => {
             },
           },
         },
+        orderBy: {
+          createdAt: "desc",
+        },
       })
       .then((post) => {
         res.status(200).json({
@@ -67,7 +70,7 @@ export const CreateNewPost = async (req: Request, res: Response) => {
   const slug = createSlug(title);
 
   const extension = thumbnail.split(";")[0].split("/")[1];
-  const filename = v4() + "-" + slug + "." + extension;
+  const filename = "cover-" + slug + "." + extension;
 
   try {
     // check if slug already exists in database
@@ -297,4 +300,45 @@ export const GetCoverImage = async (req: Request, res: Response) => {
   const { imageName } = req.params;
   const readStream = fs.createReadStream(`public/post/thumbnail/${imageName}`);
   readStream.pipe(res);
+};
+
+export const GetPostTags = async (req: Request, res: Response) => {
+  try {
+    await prisma.tag
+      .findMany({
+        include: {
+          posts: {
+            include: {
+              author: {
+                select: {
+                  username: true,
+                },
+              },
+              tags: true,
+            },
+          },
+        },
+      })
+      .then((data) => {
+        res.status(200).json({
+          code: 200,
+          status: "OK",
+          data: data,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).json({
+          code: 400,
+          status: "BAD_REQUEST",
+          message: "failed fetching tags",
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      status: "INTERNAL_SERVER_ERROR",
+      message: "something went wrong",
+    });
+  }
 };
