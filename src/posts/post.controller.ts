@@ -63,6 +63,7 @@ export const CreateNewPost = async (req: Request, res: Response) => {
   }
 
   const { userId, title, body, tags, thumbnail } = req.body;
+  console.log(thumbnail);
 
   const cover = thumbnail.replace(/^data:([A-Za-z-+/]+);base64,/, "");
 
@@ -88,53 +89,98 @@ export const CreateNewPost = async (req: Request, res: Response) => {
       });
     }
 
-    fs.writeFile(
-      path.join(ROOT_DIRECTORY + `/public/post/thumbnail/${filename}`),
-      cover,
-      "base64",
-      (err) => {
-        if (err) {
-          console.log(err);
-          return res.status(415).json({
-            code: 415,
-            status: "UNSUPPORTED_MEDIA_TYPE",
-            message: err.message,
-          });
-        }
+    await prisma.post
+      .create({
+        data: {
+          slug,
+          body,
+          title,
+          thumbnail: thumbnail !== "undefined" ? filename : undefined,
+          tags: {
+            connect: tag,
+          },
+          author: {
+            connect: { id: userId },
+          },
+        },
+      })
+      .then((post) => {
+        fs.writeFile(
+          path.join(ROOT_DIRECTORY, `/public/post/thumbnail/${filename}`),
+          cover,
+          "base64",
+          (err) => {
+            if (err) {
+              return res.status(415).json({
+                code: 415,
+                status: "UNSUPPORTED_MEDIA_TYPE",
+                message: err.message,
+              });
+            }
 
-        prisma.post
-          .create({
-            data: {
-              slug: slug,
-              body: body,
-              title: title,
-              thumbnail: filename,
-              tags: {
-                connect: tag,
-              },
-              author: {
-                connect: {
-                  id: userId,
-                },
-              },
-            },
-          })
-          .then((post) => {
             res.status(201).json({
               code: 201,
               status: "CREATED",
-              message: "new post created successfully",
+              message: "New post created successfully",
             });
-          })
-          .catch((error) => {
-            res.status(500).json({
-              code: 500,
-              status: "INTERNAL_SERVER_ERROR",
-              message: "something went wrong",
-            });
-          });
-      }
-    );
+          }
+        );
+      })
+      .catch((err) => {
+        res.status(500).json({
+          code: 500,
+          status: "INTERNAL_SERVER_ERROR",
+          message: "something went wrong",
+        });
+      });
+
+    // fs.writeFile(
+    //   path.join(ROOT_DIRECTORY + `/public/post/thumbnail/${filename}`),
+    //   cover,
+    //   "base64",
+    //   (err) => {
+    //     if (err) {
+    //       console.log(err);
+    //       return res.status(415).json({
+    //         code: 415,
+    //         status: "UNSUPPORTED_MEDIA_TYPE",
+    //         message: err.message,
+    //       });
+    //     }
+
+    //     prisma.post
+    //       .create({
+    //         data: {
+    //           slug: slug,
+    //           body: body,
+    //           title: title,
+    //           thumbnail: filename,
+    //           tags: {
+    //             connect: tag,
+    //           },
+    //           author: {
+    //             connect: {
+    //               id: userId,
+    //             },
+    //           },
+    //         },
+    //       })
+    //       .then((post) => {
+    //         res.status(201).json({
+    //           code: 201,
+    //           status: "CREATED",
+    //           message: "new post created successfully",
+    //         });
+    //       })
+    //       .catch((error) => {
+    //         res.status(500).json({
+    //           code: 500,
+    //           status: "INTERNAL_SERVER_ERROR",
+    //           message: "something went wrong",
+    //         });
+    //       });
+    //   }
+    // );
   } catch (error) {
     res.status(500).json({
       code: 500,
@@ -186,8 +232,7 @@ export const DeletePost = async (req: Request, res: Response) => {
 
 export const UpdatePost = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, body, tags, userId } = req.body;
-  let { thumbnail } = req.body;
+  const { title, body, tags, userId, thumbnail } = req.body;
 
   const cover = thumbnail.replace(/^data:([A-Za-z-+/]+);base64,/, "");
 
@@ -195,57 +240,58 @@ export const UpdatePost = async (req: Request, res: Response) => {
   const slug = createSlug(title);
 
   const extension = thumbnail.split(";")[0].split("/")[1];
-  const filename = v4() + "-" + slug + "." + extension;
+  let filename = v4() + "-" + slug + "." + extension;
 
   try {
-    fs.writeFile(
-      path.join(ROOT_DIRECTORY, `/public/post/thumbnail/${filename}`),
-      cover,
-      "base64",
-      (err) => {
-        if (err) {
-          return res.status(415).json({
-            code: 415,
-            status: "UNSUPPORTED_MEDIA_TYPE",
-            message: err.message,
-          });
-        }
-
-        prisma.post
-          .update({
-            where: { id },
-            data: {
-              title,
-              body,
-              slug,
-              thumbnail: filename,
-              tags: {
-                connect: tag,
-              },
-              author: {
-                connect: {
-                  id: userId,
-                },
-              },
+    await prisma.post
+      .update({
+        where: { id },
+        data: {
+          title,
+          body,
+          slug,
+          updatedAt: new Date(),
+          thumbnail: thumbnail !== "undefined" ? filename : undefined,
+          tags: {
+            connect: tag,
+          },
+          author: {
+            connect: {
+              id: userId,
             },
-          })
-          .then((data) => {
+          },
+        },
+      })
+      .then((data) => {
+        fs.writeFile(
+          path.join(ROOT_DIRECTORY, `/public/post/thumbnail/${filename}`),
+          cover,
+          "base64",
+          (err) => {
+            if (err) {
+              return res.status(415).json({
+                code: 415,
+                status: "UNSUPPORTED_MEDIA_TYPE",
+                message: err.message,
+              });
+            }
+
             res.status(200).json({
               code: 200,
               status: "OK",
               message: "post updated successfully",
             });
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(404).json({
-              code: 404,
-              status: "NOT_FOUND",
-              message: err.message,
-            });
-          });
-      }
-    );
+          }
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(404).json({
+          code: 404,
+          status: "NOT_FOUND",
+          message: err.message,
+        });
+      });
   } catch (error) {
     res.status(500).json({
       code: 500,
